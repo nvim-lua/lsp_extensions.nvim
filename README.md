@@ -27,6 +27,13 @@ Only current line:
 nnoremap <Leader>t :lua require'lsp_extensions'.inlay_hints{ only_current_line = true }
 ```
 
+Run on showing file or new file in buffer:
+
+```vimscript
+autocmd! * <buffer>
+autocmd BufEnter,BufWinEnter,TabEnter <buffer> :lua require'lsp_extensions'.inlay_hints{}
+```
+
 Available Options (Showing defaults):
 
 ```lua
