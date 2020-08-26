@@ -1,0 +1,120 @@
+--[[
+## Inlay Hints
+
+**Method:** `rust-analyzer/inlayHints`
+
+This request is send from client to server to render "inlay hints" -- virtual text inserted into editor to show things like inferred types.
+Generally, the client should re-query inlay hints after every modification.
+Note that we plan to move this request to `experimental/inlayHints`,
+  as it is not really Rust-specific, but the current API is not necessary the right one.
+
+**Request:**
+
+```typescript
+interface InlayHintsParams {
+    textDocument: TextDocumentIdentifier,
+}
+```
+
+**Response:** `InlayHint[]`
+
+```typescript
+interface InlayHint {
+    kind: "TypeHint" | "ParameterHint" | "ChainingHint",
+    range: Range,
+    label: string,
+}
+```
+--]]
+
+local inlay_hints = {}
+
+local inlay_hints_ns = vim.api.nvim_create_namespace('lsp_extensions.inlay_hints')
+
+-- vim.lsp.callbacks['rust-analyzer/inlayHints'] = callback
+-- vim.lsp.callbacks['experimental/inlayHints'] = callback
+
+inlay_hints.get_callback = function(opts)
+  opts = opts or {}
+
+  local highlight = opts.highlight or "Comment"
+  local prefix = opts.prefix or "  || "
+  local aligned = opts.aligned or false
+
+  local only_current_line = opts.only_current_line
+  if only_current_line == nil then
+    only_current_line = false
+  end
+
+  return function(_, _, result, _, bufnr)
+    if not result then
+      print("[lsp_extensions.inlay_hints] No inlay hints found")
+      return
+    end
+
+    vim.api.nvim_buf_clear_namespace(bufnr, inlay_hints_ns, 0, -1)
+
+    local hint_store = {}
+
+    local longest_line = -1
+
+    for _, hint in ipairs(result) do
+      local finish = hint.range["end"].line
+      if not hint_store[finish] or hint.kind == "ChainingHint" then
+        hint_store[finish] = hint
+
+        if aligned then
+          longest_line = math.max(longest_line, #vim.api.nvim_buf_get_lines(bufnr, finish, finish + 1, false)[1])
+        end
+      end
+    end
+
+    local display_virt_text = function(hint)
+      local end_line = hint.range["end"].line
+
+      -- Check for any existing / more important virtual text on the line.
+      -- TODO: Figure out how stackable virtual text works? What happens if there is more than one??
+      local existing_virt_text = vim.api.nvim_buf_get_virtual_text(bufnr, end_line)
+      if not vim.tbl_isempty(existing_virt_text) then
+        return
+      end
+
+      local text
+      if aligned then 
+        local line_length = #vim.api.nvim_buf_get_lines(bufnr, end_line, end_line + 1, false)[1]
+        text = string.format("%s | %s", (" "):rep(longest_line - line_length), hint.label)
+      else
+        text = prefix .. hint.label
+      end
+      vim.api.nvim_buf_set_virtual_text(bufnr, inlay_hints_ns, end_line, { { text, highlight } }, {})
+    end
+
+    if only_current_line then
+      local hint = hint_store[vim.api.nvim_win_get_cursor(0)[1] - 1]
+
+      if not hint then
+        print("[lsp_extensions.inlay_hints] No inlay hints for this line")
+        return
+      else
+        display_virt_text(hint)
+      end
+    else
+      for _, hint in pairs(hint_store) do
+        display_virt_text(hint)
+      end
+    end
+  end
+end
+
+inlay_hints.get_params = function()
+  return {
+    textDocument = vim.lsp.util.make_text_document_params()
+  }
+end
+
+inlay_hints.clear = function()
+  vim.api.nvim_buf_clear_namespace(0, inlay_hints_ns, 0, -1)
+end
+
+
+return inlay_hints
