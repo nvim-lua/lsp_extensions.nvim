@@ -34,6 +34,12 @@ autocmd! * <buffer>
 autocmd BufEnter,BufWinEnter,TabEnter <buffer> :lua require'lsp_extensions'.inlay_hints{}
 ```
 
+On cursor hover, get hints for current line:
+
+```vimscript
+autocmd CursorHold,CursorHoldI <buffer> :lua require'lsp_extensions'.inlay_hints{ only_current_line = true }
+```
+
 Available Options (Showing defaults):
 
 ```lua
