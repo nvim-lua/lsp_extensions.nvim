@@ -7,8 +7,8 @@ Repo to hold a bunch of info &amp; extension callbacks for built-in LSP. Use at 
 Requires Built-in LSP, [Neovim Nightly](https://github.com/neovim/neovim/releases/tag/nightly), [nvim-lsp](https://github.com/neovim/nvim-lsp)
 
 ```vimscript
-	" LSP Extensions (inlay-hints)
-	Plug "tjdevries/lsp_extensions.nvim"
+  " LSP Extensions (inlay-hints)
+  Plug "tjdevries/lsp_extensions.nvim"
 ```
 
 ## Inlay Hints (rust-analyzer)
