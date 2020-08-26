@@ -31,14 +31,18 @@ local inlay_hints = {}
 
 local inlay_hints_ns = vim.api.nvim_create_namespace('lsp_extensions.inlay_hints')
 
--- vim.lsp.callbacks['rust-analyzer/inlayHints'] = callback
--- vim.lsp.callbacks['experimental/inlayHints'] = callback
+inlay_hints.request = function(opts, bufnr)
+  vim.lsp.buf_request(bufnr or 0, 'rust-analyzer/inlayHints', inlay_hints.get_params(), inlay_hints.get_callback(opts))
+
+  -- TODO: At some point, rust probably adds this?
+  -- vim.lsp.buf_request(bufnr or 0, 'experimental/inlayHints', inlay_hints.get_params(), inlay_hints.get_callback(opts))
+end
 
 inlay_hints.get_callback = function(opts)
   opts = opts or {}
 
   local highlight = opts.highlight or "Comment"
-  local prefix = opts.prefix or "  || "
+  local prefix = opts.prefix or " > "
   local aligned = opts.aligned or false
 
   local only_current_line = opts.only_current_line
@@ -80,9 +84,9 @@ inlay_hints.get_callback = function(opts)
       end
 
       local text
-      if aligned then 
+      if aligned then
         local line_length = #vim.api.nvim_buf_get_lines(bufnr, end_line, end_line + 1, false)[1]
-        text = string.format("%s | %s", (" "):rep(longest_line - line_length), hint.label)
+        text = string.format("%s %s", (" "):rep(longest_line - line_length), prefix .. hint.label)
       else
         text = prefix .. hint.label
       end

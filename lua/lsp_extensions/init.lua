@@ -5,6 +5,9 @@ Note to self:
 
 Each extension should probably look like:
 
+- request(opts)
+  -> opts gets passed to get_callback, runs the request in your buffer.
+
 - get_callback(opts)
   -> opts configures how you would want this extension to run.
 
@@ -12,6 +15,7 @@ Each extension should probably look like:
   -> get the params you need to make the request
 
 --]]
+
 local extensions = {}
 
 
