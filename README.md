@@ -50,6 +50,12 @@ require'lsp_extensions'.inlay_hints{
 }
 ```
 
+![Customized](https://i.imgur.com/FRRas1c.png)
+
+```vimscript
+autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter *.rs :lua require'lsp_extensions'.inlay_hints{ prefix = ' » ', highlight = "NonText" }
+```
+
 ## Clips
 
 - Showing Line Diagnostics: https://clips.twitch.tv/ProductiveBoxyPastaCoolStoryBro
