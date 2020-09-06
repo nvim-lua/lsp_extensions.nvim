@@ -78,7 +78,7 @@ inlay_hints.get_callback = function(opts)
 
       -- Check for any existing / more important virtual text on the line.
       -- TODO: Figure out how stackable virtual text works? What happens if there is more than one??
-      local existing_virt_text = vim.api.nvim_buf_get_virtual_text(bufnr, end_line)
+      local existing_virt_text = vim.api.nvim_buf_get_extmarks(bufnr, inlay_hints_ns, {end_line, 0}, {end_line, 0}, {})
       if not vim.tbl_isempty(existing_virt_text) then
         return
       end
