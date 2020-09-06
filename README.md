@@ -8,7 +8,7 @@ Requires Built-in LSP, [Neovim Nightly](https://github.com/neovim/neovim/release
 
 ```vimscript
 " LSP Extensions (inlay-hints)
-Plug "tjdevries/lsp_extensions.nvim"
+Plug 'tjdevries/lsp_extensions.nvim'
 ```
 
 ## Inlay Hints (rust-analyzer)
