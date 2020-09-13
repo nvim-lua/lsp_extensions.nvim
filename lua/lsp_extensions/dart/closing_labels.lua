@@ -31,11 +31,6 @@ local closing_labels_ns = vim.api.nvim_create_namespace('lsp_extensions.dart.clo
 -- @tparam table a table of options: highlight, prefix
 M.get_callback = function(opts)
 
-  vim.cmd [[augroup DartShowClosingLabels]]
-  vim.cmd [[  au!]]
-  vim.cmd [[  autocmd CursorHold,CursorHoldI *.dart :lua require('lsp_extensions.dart.closing_labels').draw_labels()]]
-  vim.cmd [[augroup END]]
-
   local get_draw_labels = function(opts)
     return function()
       local highlight = opts.highlight
@@ -49,7 +44,6 @@ M.get_callback = function(opts)
         local text = prefix .. label.label
         vim.api.nvim_buf_set_virtual_text(bufnr, closing_labels_ns, end_line, { { text, highlight } }, {})
       end
-
 
       vim.api.nvim_buf_clear_namespace(bufnr, closing_labels_ns, 0, -1)
       for _, label in pairs(labels) do
