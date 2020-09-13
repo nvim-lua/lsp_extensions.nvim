@@ -26,19 +26,40 @@ local M = {}
 local all_labels = {}
 -- Namespace for the virtual text
 local closing_labels_ns = vim.api.nvim_create_namespace('lsp_extensions.dart.closing_labels')
--- Stored opts from the get_callback invocation.
-local label_opts = {}
 
 -- Gets a callback to register to the dartls publishClosingLabels notification.
 -- @tparam table a table of options: highlight, prefix
 M.get_callback = function(opts)
-  label_opts.highlight = opts.highlight or "Comment"
-  label_opts.prefix = opts.prefix or " // "
 
   vim.cmd [[augroup DartShowClosingLabels]]
   vim.cmd [[  au!]]
   vim.cmd [[  autocmd CursorHold,CursorHoldI *.dart :lua require('lsp_extensions.dart.closing_labels').draw_labels()]]
   vim.cmd [[augroup END]]
+
+  local get_draw_labels = function(opts)
+    return function()
+      local highlight = opts.highlight
+      local prefix = opts.prefix
+      local bufnr = 0
+      local uri = vim.uri_from_bufnr(bufnr)
+      local labels = all_labels[uri] or {}
+
+      local display_virt_text = function(label)
+        local end_line = label.range["end"].line
+        local text = prefix .. label.label
+        vim.api.nvim_buf_set_virtual_text(bufnr, closing_labels_ns, end_line, { { text, highlight } }, {})
+      end
+
+
+      vim.api.nvim_buf_clear_namespace(bufnr, closing_labels_ns, 0, -1)
+      for _, label in pairs(labels) do
+        display_virt_text(label)
+      end
+    end
+  end
+
+  -- Draws closing labels in the current buffer
+  M.draw_labels = get_draw_labels(opts)
 
   return function(_, _, result, _, _)
     local uri = result.uri
@@ -47,29 +68,6 @@ M.get_callback = function(opts)
     if uri == vim.uri_from_bufnr(0) then
       M.draw_labels()
     end
-  end
-end
-
--- Draws closing labels in the current buffer
-M.draw_labels = function()
-  local opts = label_opts
-
-  local highlight = opts.highlight
-  local prefix = opts.prefix
-  local bufnr = 0
-  local uri = vim.uri_from_bufnr(bufnr)
-  local labels = all_labels[uri] or {}
-
-  local display_virt_text = function(label)
-    local end_line = label.range["end"].line
-    local text = prefix .. label.label
-    vim.api.nvim_buf_set_virtual_text(bufnr, closing_labels_ns, end_line, { { text, highlight } }, {})
-  end
-
-
-  vim.api.nvim_buf_clear_namespace(bufnr, closing_labels_ns, 0, -1)
-  for _, label in pairs(labels) do
-    display_virt_text(label)
   end
 end
 
