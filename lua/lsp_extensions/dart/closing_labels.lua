@@ -33,8 +33,9 @@ M.get_callback = function(opts)
 
   local get_draw_labels = function(opts)
     return function()
-      local highlight = opts.highlight
-      local prefix = opts.prefix
+      opts = opts or {}
+      local highlight = opts.highlight or "Comment"
+      local prefix = opts.prefix or "// "
       local bufnr = 0
       local uri = vim.uri_from_bufnr(bufnr)
       local labels = all_labels[uri] or {}
