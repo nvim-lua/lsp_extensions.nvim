@@ -7,8 +7,8 @@ Repo to hold a bunch of info &amp; extension callbacks for built-in LSP. Use at 
 Requires Built-in LSP, [Neovim Nightly](https://github.com/neovim/neovim/releases/tag/nightly), [nvim-lsp](https://github.com/neovim/nvim-lsp)
 
 ```vimscript
-" LSP Extensions (inlay-hints)
-Plug 'tjdevries/lsp_extensions.nvim'
+" LSP Extensions
+Plug 'nvim-lua/lsp_extensions.nvim'
 ```
 
 ## Inlay Hints (rust-analyzer)
@@ -56,6 +56,13 @@ require'lsp_extensions'.inlay_hints{
 autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter,BufWritePost *.rs :lua require'lsp_extensions'.inlay_hints{ prefix = ' » ', highlight = "NonText" }
 ```
 
+## Closing Labels (dartls)
+![closing-labels](https://raw.githubusercontent.com/tjdevries/media.repo/b4a4a20d0c31a4905e42e219cf854c9aa104edbd/lsp_extensions/dart-closingLabels.png)
+
+[Closing Labels Documentation](https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/tool/lsp_spec/README.md#darttextdocumentpublishclosinglabels-notification)
+
+Check out the [example file](examples/dart/closing_labels.lua) for setup
+
 ## Clips
 
 - Showing Line Diagnostics: https://clips.twitch.tv/ProductiveBoxyPastaCoolStoryBro
@@ -63,5 +70,6 @@ autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter,BufWritePost *.rs :lua require
 - This Plugin:
 
   - Lined up hints: https://clips.twitch.tv/DaintyCorrectMarjoramKeepo
+  - [Closing Labels Demo](https://github.com/tjdevries/media.repo/blob/b4a4a20d0c31a4905e42e219cf854c9aa104edbd/lsp_extensions/dart-closingLabels.mp4)
 
 - N E O V I M: https://clips.twitch.tv/SmoothGoodTurnipCmonBruh
