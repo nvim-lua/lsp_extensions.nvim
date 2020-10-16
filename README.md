@@ -63,6 +63,13 @@ autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter,BufWritePost *.rs :lua require
 
 Check out the [example file](examples/dart/closing_labels.lua) for setup
 
+## Outline (dartls)
+![outline](https://raw.githubusercontent.com/tjdevries/media.repo/b27a8366b460cac2629d5fdb81862e5bd1d0a553/lsp_extensions/dart-outline.png)
+
+[Outline Documentation](https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/tool/lsp_spec/README.md#darttextdocumentpublishoutline-notification)
+
+Check out the [example file](examples/dart/outline.lua) for setup
+
 ## Clips
 
 - Showing Line Diagnostics: https://clips.twitch.tv/ProductiveBoxyPastaCoolStoryBro
