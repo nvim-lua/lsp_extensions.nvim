@@ -81,7 +81,7 @@ local default_kind_prefixes = {
 -- @tparam string fname is the filename of the buffer that the outline belongs to
 -- @tparam table items is the in progress table of items
 -- @tparam table node is the current `Element` that is being traversed
-_DART_OUTLINE_APPEND_CHILDREN = function(opts, fname, items, node)
+_DART_OUTLINE_APPEND_CHILDREN = function(opts, fname, items, node, tree_prefix)
   if node == nil then
     return
   end
@@ -107,9 +107,16 @@ _DART_OUTLINE_APPEND_CHILDREN = function(opts, fname, items, node)
   end
 
   local text = table.concat(stringBuilder, ' ')
-  table.insert(items, {filename = fname, lnum = range.start.line + 1, col = range.start.character + 1, text = text})
-  for _, child in ipairs(node.children or {}) do
-    _DART_OUTLINE_APPEND_CHILDREN(opts, fname, items, child)
+  table.insert(items, {filename = fname, lnum = range.start.line + 1, col = range.start.character + 1, text = text, tree_prefix = tree_prefix})
+
+  -- We're done if there's no more children
+  if node.children == nil or vim.tbl_isempty(node.children) then
+    return
+  end
+
+  local child_tree_prefix = tree_prefix .. '  '
+  for _, child in ipairs(node.children) do
+      _DART_OUTLINE_APPEND_CHILDREN(opts, fname, items, child, child_tree_prefix)
   end
 end
 
@@ -135,7 +142,7 @@ local build_items = function(opts, outline)
   local fname = vim.api.nvim_buf_get_name(0)
   local items = {}
   for _, node in ipairs(outline.children or {}) do
-    _DART_OUTLINE_APPEND_CHILDREN(opts, fname, items, node)
+    _DART_OUTLINE_APPEND_CHILDREN(opts, fname, items, node, '')
   end
   return items
 end
@@ -172,6 +179,32 @@ M.loclist = function(opts)
       })
     vim.cmd[[lopen]]
   end)
+end
+
+M.fzf = function(opts)
+   M.custom(opts, function(items)
+     opts = opts or {}
+     local fzf_opts = opts.fzf_opts or {'--reverse'}
+     local stringifiedItems = {}
+     for _, item in ipairs(items) do
+         table.insert(stringifiedItems, string.format('%s%s:%d:%d',item.tree_prefix, item.text, item.lnum, item.col))
+     end
+     -- Calling fzf as explained here:
+     -- https://github.com/junegunn/fzf/issues/1778#issuecomment-697208274
+     local fzf_run = vim.fn['fzf#run']
+     local fzf_wrap = vim.fn['fzf#wrap']
+     local wrapped = fzf_wrap('Outline', {
+         source = stringifiedItems,
+         options = fzf_opts,
+     })
+     wrapped["sink*"] = nil
+     wrapped.sink = function(line)
+       local pattern = '%S+:(%d+):(%d+)'
+       local lnum, col = string.match(line, pattern)
+       vim.call('cursor', lnum, col)
+     end
+     fzf_run(wrapped)
+   end)
 end
 
 -- Gets a callback to register to the dartls outline notification.
