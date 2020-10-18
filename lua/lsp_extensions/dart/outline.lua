@@ -193,10 +193,13 @@ end
 M.fzf = function(opts)
    M.custom(opts, function(items)
      opts = opts or {}
+     if opts.tree == nil then
+       opts.tree = true
+     end
      local fzf_opts = opts.fzf_opts or {'--reverse'}
      local stringifiedItems = {}
      for _, item in ipairs(items) do
-         table.insert(stringifiedItems, string.format('%s%s:%d:%d',item.tree_prefix, item.text, item.lnum, item.col))
+         table.insert(stringifiedItems, string.format('%s%s:%d:%d', (opts.tree and item.tree_prefix) or '', item.text, item.lnum, item.col))
      end
      -- Calling fzf as explained here:
      -- https://github.com/junegunn/fzf/issues/1778#issuecomment-697208274
