@@ -107,7 +107,16 @@ _DART_OUTLINE_APPEND_CHILDREN = function(opts, fname, items, node, tree_prefix)
   end
 
   local text = table.concat(stringBuilder, ' ')
-  table.insert(items, {filename = fname, lnum = range.start.line + 1, col = range.start.character + 1, text = text, tree_prefix = tree_prefix})
+  table.insert(
+    items,
+    {
+      filename = fname,
+      lnum = range.start.line + 1,
+      col = range.start.character + 1,
+      text = text,
+      tree_prefix = tree_prefix,
+    }
+  )
 
   -- We're done if there's no more children
   if node.children == nil or vim.tbl_isempty(node.children) then
@@ -205,6 +214,58 @@ M.fzf = function(opts)
      end
      fzf_run(wrapped)
    end)
+end
+
+M.telescope = function(opts)
+  M.custom(opts, function(items)
+    local has_telescope, pickers = pcall(require, 'telescope.pickers')
+    if not has_telescope then
+      error('Missing https://github.com/nvim-lua/telescope.nvim')
+    end
+    opts = opts or {}
+    if opts.tree == nil then
+      opts.tree = true
+    end
+    local telescope_opts = opts.telescope_opts or {hide_filename = true, ignore_filename = true, sorting_strategy = 'ascending'}
+    local actions = require('telescope.actions')
+    local finders = require('telescope.finders')
+    local previewers = require('telescope.previewers')
+    local sorters = require('telescope.sorters')
+
+    pickers.new(telescope_opts, {
+        prompt_title = 'Outline',
+        sorting_strategy = telescope_opts.sorting_strategy,
+        finder = finders.new_table {
+          results = items,
+          entry_maker = function(entry)
+            return {
+              valid = true,
+              value = entry,
+              ordinal = entry.text,
+              -- Optionally enable displaying tree structure
+              display = string.format('%s%s:%d', (opts.tree and entry.tree_prefix) or '', entry.text, entry.lnum),
+              filename = entry.filename,
+              lnum = entry.lnum,
+              col = entry.col,
+            }
+          end
+        },
+        previewer = previewers.qflist.new(telescope_opts),
+        sorter = sorters.get_generic_fuzzy_sorter(telescope_opts),
+        attach_mappings = function(prompt_bufnr, map)
+          local run_command = function()
+            local selection = actions.get_selected_entry(prompt_bufnr)
+            actions.close(prompt_bufnr)
+            vim.call('cursor', selection.lnum, selection.col+1)
+          end
+
+          map('i', '<CR>', run_command)
+          map('n', '<CR>', run_command)
+
+          return true
+        end,
+      }):find()
+  end)
 end
 
 -- Gets a callback to register to the dartls outline notification.
