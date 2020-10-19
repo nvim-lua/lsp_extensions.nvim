@@ -81,7 +81,7 @@ local default_kind_prefixes = {
 -- @tparam string fname is the filename of the buffer that the outline belongs to
 -- @tparam table items is the in progress table of items
 -- @tparam table node is the current `Element` that is being traversed
-_DART_OUTLINE_APPEND_CHILDREN = function(opts, fname, items, node)
+_DART_OUTLINE_APPEND_CHILDREN = function(opts, fname, items, node, tree_prefix)
   if node == nil then
     return
   end
@@ -107,9 +107,25 @@ _DART_OUTLINE_APPEND_CHILDREN = function(opts, fname, items, node)
   end
 
   local text = table.concat(stringBuilder, ' ')
-  table.insert(items, {filename = fname, lnum = range.start.line + 1, col = range.start.character + 1, text = text})
-  for _, child in ipairs(node.children or {}) do
-    _DART_OUTLINE_APPEND_CHILDREN(opts, fname, items, child)
+  table.insert(
+    items,
+    {
+      filename = fname,
+      lnum = range.start.line + 1,
+      col = range.start.character + 1,
+      text = text,
+      tree_prefix = tree_prefix,
+    }
+  )
+
+  -- We're done if there's no more children
+  if node.children == nil or vim.tbl_isempty(node.children) then
+    return
+  end
+
+  local child_tree_prefix = tree_prefix .. '  '
+  for _, child in ipairs(node.children) do
+      _DART_OUTLINE_APPEND_CHILDREN(opts, fname, items, child, child_tree_prefix)
   end
 end
 
@@ -130,12 +146,12 @@ end
 --
 -- @tparam table opts is table used to mutate items
 -- @tparam table outline the outline for the current request
--- @treturn table {{filename = string, lnum = number, col = number, text = string}, ...}
+-- @treturn table {{filename = string, lnum = number, col = number, text = string, tree_prefix = string}, ...}
 local build_items = function(opts, outline)
   local fname = vim.api.nvim_buf_get_name(0)
   local items = {}
   for _, node in ipairs(outline.children or {}) do
-    _DART_OUTLINE_APPEND_CHILDREN(opts, fname, items, node)
+    _DART_OUTLINE_APPEND_CHILDREN(opts, fname, items, node, '')
   end
   return items
 end
@@ -143,9 +159,9 @@ end
 -- This function allows you to specify your own outline handler to do whatever
 -- you want. Check out the loclist implementation as an example.
 --
--- @tparam table opts is table used to mutate items. opts.kind_prefixes is a
--- table that allows specifying a prefix per kind type. This can be especially
--- useful if you want to display unicode or patched font icons.
+-- @tparam table opts is table used to mutate items.
+--   - opts.kind_prefixes is a table that allows specifying a prefix per kind type.
+--     This can be especially useful if you want to display unicode or patched font icons.
 -- @tparam function(items) handler is a function which takes a list of items
 M.custom = function(opts, handler)
   opts = opts or {}
@@ -161,9 +177,9 @@ end
 
 -- This function displays the outline in the loclist.
 --
--- @tparam table opts is table used to mutate items. opts.kind_prefixes is a
--- table that allows specifying a prefix per kind type. This can be especially
--- useful if you want to display unicode or patched font icons.
+-- @tparam table opts is table used to mutate items.
+--   - opts.kind_prefixes is a table that allows specifying a prefix per kind type.
+--     This can be especially useful if you want to display unicode or patched font icons.
 M.loclist = function(opts)
   M.custom(opts, function(items)
     vim.fn.setloclist(0, {}, ' ', {
@@ -171,6 +187,106 @@ M.loclist = function(opts)
         items = items;
       })
     vim.cmd[[lopen]]
+  end)
+end
+
+-- This function displays the outline in fzf.
+--
+-- @tparam table opts is table used to mutate items.
+--   - opts.tree is a bool specifying if you want the outline to appear as a tree.
+--   - opts.kind_prefixes is a table that allows specifying a prefix per kind type.
+--     This can be especially useful if you want to display unicode or patched font icons.
+--   - opts.fzf_opts is a table of strings passed to fzf. Default: {'--reverse'}
+M.fzf = function(opts)
+   M.custom(opts, function(items)
+     opts = opts or {}
+     if opts.tree == nil then
+       opts.tree = true
+     end
+     local fzf_opts = opts.fzf_opts or {'--reverse'}
+     local stringifiedItems = {}
+     for _, item in ipairs(items) do
+         table.insert(stringifiedItems, string.format('%s%s:%d:%d', (opts.tree and item.tree_prefix) or '', item.text, item.lnum, item.col))
+     end
+     -- Calling fzf as explained here:
+     -- https://github.com/junegunn/fzf/issues/1778#issuecomment-697208274
+     local fzf_run = vim.fn['fzf#run']
+     local fzf_wrap = vim.fn['fzf#wrap']
+     local wrapped = fzf_wrap('Outline', {
+         source = stringifiedItems,
+         options = fzf_opts,
+     })
+     wrapped["sink*"] = nil
+     wrapped.sink = function(line)
+       local pattern = '%S+:(%d+):(%d+)'
+       local lnum, col = string.match(line, pattern)
+       vim.call('cursor', lnum, col)
+     end
+     fzf_run(wrapped)
+   end)
+end
+
+-- This function displays the outline with telescope.nvim.
+--
+-- @tparam table opts is table used to mutate items.
+--   - opts.tree is a bool specifying if you want the outline to appear as a tree.
+--   - opts.kind_prefixes is a table that allows specifying a prefix per kind type.
+--     This can be especially useful if you want to display unicode or patched font icons.
+--   - opts.telescope_opts is a table of options passed to telescope. Default:
+--     {hide_filename = true, ignore_filename = true, sorting_strategy = 'ascending'}
+M.telescope = function(opts)
+  M.custom(opts, function(items)
+    local has_telescope, pickers = pcall(require, 'telescope.pickers')
+    if not has_telescope then
+      error('Missing https://github.com/nvim-lua/telescope.nvim')
+    end
+    opts = opts or {}
+    if opts.tree == nil then
+      opts.tree = true
+    end
+    local telescope_opts = opts.telescope_opts or {hide_filename = true, ignore_filename = true, sorting_strategy = 'ascending'}
+    local actions = require('telescope.actions')
+    local finders = require('telescope.finders')
+    local previewers = require('telescope.previewers')
+    local sorters = require('telescope.sorters')
+
+    pickers.new(telescope_opts, {
+        prompt_title = 'Outline',
+        sorting_strategy = telescope_opts.sorting_strategy,
+        finder = finders.new_table {
+          results = items,
+          entry_maker = function(entry)
+            return {
+              valid = true,
+              value = entry,
+              ordinal = entry.text,
+              -- Optionally enable displaying tree structure
+              display = string.format('%s%s:%d', (opts.tree and entry.tree_prefix) or '', entry.text, entry.lnum),
+              filename = entry.filename,
+              lnum = entry.lnum,
+              col = entry.col,
+            }
+          end
+        },
+        previewer = previewers.qflist.new(telescope_opts),
+        sorter = sorters.get_generic_fuzzy_sorter(telescope_opts),
+        attach_mappings = function(prompt_bufnr, map)
+          local run_command = function(bufnr)
+            local selection = actions.get_selected_entry(bufnr)
+            actions.close(prompt_bufnr)
+            vim.call('cursor', selection.lnum, selection.col+1)
+          end
+
+          map('i', '<C-k>', actions.move_selection_previous)
+          map('i', '<C-j>', actions.move_selection_next)
+          map('n', '<C-k>', actions.move_selection_previous)
+          map('n', '<C-j>', actions.move_selection_next)
+          map('i', '<CR>', run_command)
+          map('n', '<CR>', run_command)
+
+          return true
+        end,
+      }):find()
   end)
 end
 
