@@ -256,12 +256,16 @@ M.telescope = function(opts)
         previewer = previewers.qflist.new(telescope_opts),
         sorter = sorters.get_generic_fuzzy_sorter(telescope_opts),
         attach_mappings = function(prompt_bufnr, map)
-          local run_command = function()
-            local selection = actions.get_selected_entry(prompt_bufnr)
+          local run_command = function(bufnr)
+            local selection = actions.get_selected_entry(bufnr)
             actions.close(prompt_bufnr)
             vim.call('cursor', selection.lnum, selection.col+1)
           end
 
+          map('i', '<C-k>', actions.move_selection_previous)
+          map('i', '<C-j>', actions.move_selection_next)
+          map('n', '<C-k>', actions.move_selection_previous)
+          map('n', '<C-j>', actions.move_selection_next)
           map('i', '<CR>', run_command)
           map('n', '<CR>', run_command)
 
