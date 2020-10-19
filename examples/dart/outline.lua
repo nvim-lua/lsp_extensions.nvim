@@ -12,7 +12,7 @@ nvim_lsp.dartls.setup{
 }
 
 -- Next, when you want to actually show the outline, you will need to call one
--- of the display methods (either loclist() or custom().
+-- of the display methods.
 require('lsp_extensions.dart.outline').loclist({})
 
 -- If you want to handle the display yourself you can use the `custom()` function.
@@ -23,8 +23,7 @@ require('lsp_extensions.dart.outline').custom({}, function(items) print(items) e
 -- prefixes you can do that by passing `kind_prefixes` into the opts. If you
 -- pair this with a patched [Nerdfont](https://www.nerdfonts.com/) you can
 -- define a very custom experience. You can define a function that looks like:
-DART_SHOW_OUTLINE = function()
-    require('lsp_extensions.dart.outline').loclist({kind_prefixes={
+DART_KIND_PREFIXES = {
         CLASS = "",
         CLASS_TYPE_ALIAS = "",
         COMPILATION_UNIT = "ﴒ",
@@ -52,8 +51,14 @@ DART_SHOW_OUTLINE = function()
         UNIT_TEST_GROUP = "﬽",
         UNIT_TEST_TEST = "",
         UNKNOWN = "",
-    }})
+    }
+DART_SHOW_OUTLINE = function()
+    require('lsp_extensions.dart.outline').loclist({kind_prefixes=DART_KIND_PREFIXES})
 end
 
 -- And then call it from neovim with :lua DART_SHOW_OUTLINE()
 
+-- The outline also has built in handlers for fzf and telescope.nvim
+require('lsp_extensions.dart.outline').fzf({kind_prefixes=DART_KIND_PREFIXES, fzf_opts={'--height', '40%', '--reverse', '--border', '--inline-info'}})
+-- OR
+require('lsp_extensions.dart.outline').telescope({kind_prefixes=DART_KIND_PREFIXES, telescope_opts={borderchars={'▃', '▐', '▀', '▍', '▃', '▃', '▀', '▀'}}})

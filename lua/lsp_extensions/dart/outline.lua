@@ -146,7 +146,7 @@ end
 --
 -- @tparam table opts is table used to mutate items
 -- @tparam table outline the outline for the current request
--- @treturn table {{filename = string, lnum = number, col = number, text = string}, ...}
+-- @treturn table {{filename = string, lnum = number, col = number, text = string, tree_prefix = string}, ...}
 local build_items = function(opts, outline)
   local fname = vim.api.nvim_buf_get_name(0)
   local items = {}
@@ -159,9 +159,9 @@ end
 -- This function allows you to specify your own outline handler to do whatever
 -- you want. Check out the loclist implementation as an example.
 --
--- @tparam table opts is table used to mutate items. opts.kind_prefixes is a
--- table that allows specifying a prefix per kind type. This can be especially
--- useful if you want to display unicode or patched font icons.
+-- @tparam table opts is table used to mutate items.
+--   - opts.kind_prefixes is a table that allows specifying a prefix per kind type.
+--     This can be especially useful if you want to display unicode or patched font icons.
 -- @tparam function(items) handler is a function which takes a list of items
 M.custom = function(opts, handler)
   opts = opts or {}
@@ -177,9 +177,9 @@ end
 
 -- This function displays the outline in the loclist.
 --
--- @tparam table opts is table used to mutate items. opts.kind_prefixes is a
--- table that allows specifying a prefix per kind type. This can be especially
--- useful if you want to display unicode or patched font icons.
+-- @tparam table opts is table used to mutate items.
+--   - opts.kind_prefixes is a table that allows specifying a prefix per kind type.
+--     This can be especially useful if you want to display unicode or patched font icons.
 M.loclist = function(opts)
   M.custom(opts, function(items)
     vim.fn.setloclist(0, {}, ' ', {
@@ -190,6 +190,13 @@ M.loclist = function(opts)
   end)
 end
 
+-- This function displays the outline in fzf.
+--
+-- @tparam table opts is table used to mutate items.
+--   - opts.tree is a bool specifying if you want the outline to appear as a tree.
+--   - opts.kind_prefixes is a table that allows specifying a prefix per kind type.
+--     This can be especially useful if you want to display unicode or patched font icons.
+--   - opts.fzf_opts is a table of strings passed to fzf. Default: {'--reverse'}
 M.fzf = function(opts)
    M.custom(opts, function(items)
      opts = opts or {}
@@ -219,6 +226,14 @@ M.fzf = function(opts)
    end)
 end
 
+-- This function displays the outline with telescope.nvim.
+--
+-- @tparam table opts is table used to mutate items.
+--   - opts.tree is a bool specifying if you want the outline to appear as a tree.
+--   - opts.kind_prefixes is a table that allows specifying a prefix per kind type.
+--     This can be especially useful if you want to display unicode or patched font icons.
+--   - opts.telescope_opts is a table of options passed to telescope. Default:
+--     {hide_filename = true, ignore_filename = true, sorting_strategy = 'ascending'}
 M.telescope = function(opts)
   M.custom(opts, function(items)
     local has_telescope, pickers = pcall(require, 'telescope.pickers')
