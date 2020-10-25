@@ -64,7 +64,7 @@ inlay_hints.get_callback = function(opts)
 
     for _, hint in ipairs(result) do
       local finish = hint.range["end"].line
-      if not hint_store[finish] or hint.kind == "ChainingHint" then
+      if not hint_store[finish] and hint.kind == "ChainingHint" then
         hint_store[finish] = hint
 
         if aligned then
