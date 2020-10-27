@@ -56,6 +56,13 @@ inlay_hints.get_callback = function(opts)
       return
     end
 
+    -- No errors but there were no results
+    -- Adding result == 0 to above if statement causes freeze, ENTER to continue, and defocus of prompt window
+    -- This as it triggers and blocks when entering many views and temporary bufs that trigger autocmd
+    if result == 0 then
+        return
+    end
+
     vim.api.nvim_buf_clear_namespace(bufnr, inlay_hints_ns, 0, -1)
 
     local hint_store = {}
