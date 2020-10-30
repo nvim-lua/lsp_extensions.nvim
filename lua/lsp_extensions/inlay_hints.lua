@@ -51,7 +51,7 @@ inlay_hints.get_callback = function(opts)
   end
 
   return function(_, _, result, _, bufnr)
-    if not result or vim.tbl_isempty(result) then
+    if not result or vim.tbl_isempty(result) or type(result) == 'number' then
       print("[lsp_extensions.inlay_hints] No inlay hints found")
       return
     end
