@@ -50,8 +50,13 @@ inlay_hints.get_callback = function(opts)
     only_current_line = false
   end
 
-  return function(_, _, result, _, bufnr)
-    if not result or vim.tbl_isempty(result) or type(result) == 'number' then
+  return function(err, _, result, _, bufnr)
+    -- I'm pretty sure this only happens for unsupported items.
+    if err or type(result) == 'number' then
+      return
+    end
+
+    if not result or vim.tbl_isempty(result) then
       print("[lsp_extensions.inlay_hints] No inlay hints found")
       return
     end
