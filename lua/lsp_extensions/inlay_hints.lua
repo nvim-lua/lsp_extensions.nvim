@@ -57,7 +57,6 @@ inlay_hints.get_callback = function(opts)
     end
 
     if not result or vim.tbl_isempty(result) then
-      print("[lsp_extensions.inlay_hints] No inlay hints found")
       return
     end
 
@@ -102,7 +101,6 @@ inlay_hints.get_callback = function(opts)
       local hint = hint_store[vim.api.nvim_win_get_cursor(0)[1] - 1]
 
       if not hint then
-        print("[lsp_extensions.inlay_hints] No inlay hints for this line")
         return
       else
         display_virt_text(hint)
