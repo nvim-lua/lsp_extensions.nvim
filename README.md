@@ -63,6 +63,22 @@ autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter,BufWritePost *.rs :lua require
 
 Check out the [example file](examples/dart/closing_labels.lua) for setup
 
+## Outline (dartls)
+Rending in loclist:
+<img align="left" alt="dart-outline-loclist" src="https://raw.githubusercontent.com/tjdevries/media.repo/b27a8366b460cac2629d5fdb81862e5bd1d0a553/lsp_extensions/dart-outline.png">
+
+
+Rendering in fzf:
+<img align="left" alt="dart-outline-fzf" src="https://raw.githubusercontent.com/PatOConnor43/media.repo/0a8aa1c6fc89087c4771557c1e59864700821b26/lsp_extensions/dart-outline-fzf.png">
+
+
+Rendering in telescope:
+<img align="left" alt="dart-outline-telescope" src="https://raw.githubusercontent.com/PatOConnor43/media.repo/0a8aa1c6fc89087c4771557c1e59864700821b26/lsp_extensions/dart-outline-telescope.png">
+
+[Outline Documentation](https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/tool/lsp_spec/README.md#darttextdocumentpublishoutline-notification)
+
+Check out the [example file](examples/dart/outline.lua) for setup
+
 ## Clips
 
 - Showing Line Diagnostics: https://clips.twitch.tv/ProductiveBoxyPastaCoolStoryBro
