@@ -13,7 +13,7 @@ Plug 'nvim-lua/lsp_extensions.nvim'
 
 ## Inlay Hints (rust-analyzer)
 
-![inlay-hints](https://i.imgur.com/YsOfqOk.png)
+![Customized](https://i.imgur.com/FRRas1c.png)
 
 Inlay hints for the whole file:
 
@@ -47,13 +47,12 @@ require'lsp_extensions'.inlay_hints{
 	prefix = " > ",
 	aligned = false,
 	only_current_line = false
+	enabled = { "ChainingHint" }
 }
 ```
 
-![Customized](https://i.imgur.com/FRRas1c.png)
-
 ```vimscript
-autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter,BufWritePost *.rs :lua require'lsp_extensions'.inlay_hints{ prefix = ' » ', highlight = "NonText" }
+autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter,BufWritePost *.rs :lua require'lsp_extensions'.inlay_hints{ prefix = ' » ', highlight = "NonText", enabled = {"ChainingHint"} }
 ```
 
 ## Closing Labels (dartls)
