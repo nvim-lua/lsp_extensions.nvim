@@ -11,6 +11,15 @@ Requires Built-in LSP, [Neovim Nightly](https://github.com/neovim/neovim/release
 Plug 'nvim-lua/lsp_extensions.nvim'
 ```
 
+### Available Features
+
+#### Rust
+- [Inlay Hints](#inlay-hints-rust-analyzer)
+
+#### Dart
+- [Closing Labels](#closing-labels-dartls)
+- [Outline](#outline-dartls)
+
 ## Inlay Hints (rust-analyzer)
 
 ![Customized](https://i.imgur.com/FRRas1c.png)
