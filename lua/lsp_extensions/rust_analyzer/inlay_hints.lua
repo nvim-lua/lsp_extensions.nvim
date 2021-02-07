@@ -29,7 +29,7 @@ interface InlayHint {
 
 local inlay_hints = {}
 
-local inlay_hints_ns = vim.api.nvim_create_namespace("lsp_extensions.inlay_hints")
+local inlay_hints_ns = vim.api.nvim_create_namespace("lsp_extensions.rust_analyzer.inlay_hints")
 
 inlay_hints.request = function(opts, bufnr)
   vim.lsp.buf_request(bufnr or 0, "rust-analyzer/inlayHints", inlay_hints.get_params(),
@@ -132,4 +132,4 @@ inlay_hints.clear = function()
   vim.api.nvim_buf_clear_namespace(0, inlay_hints_ns, 0, -1)
 end
 
-return inlay_hints
+return inlay_hints.request
