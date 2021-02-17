@@ -20,6 +20,10 @@ Plug 'nvim-lua/lsp_extensions.nvim'
 - [Closing Labels](#closing-labels-dartls)
 - [Outline](#outline-dartls)
 
+#### Diagnostics
+- [Diagnostics](#workspace-diagnostics)
+
+
 ## Inlay Hints (rust-analyzer)
 
 ![Customized](https://i.imgur.com/FRRas1c.png)
@@ -86,6 +90,33 @@ Rendering in telescope:
 [Outline Documentation](https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/tool/lsp_spec/README.md#darttextdocumentpublishoutline-notification)
 
 Check out the [example file](examples/dart/outline.lua) for setup
+
+## Workspace Diagnostics
+
+To enable workspace diagnostics, you'll want do something like this:
+
+```lua
+-- use the same configuration you would use for `vim.lsp.diagnostic.on_publish_diagnostics`.
+vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+  require('lsp_extensions.workspace.diagnostic').handler, {
+    signs = {
+      severity_limit = "Error",
+    }
+  }
+)
+```
+
+To use workspace diagnostics, you can do some of the following:
+
+```lua
+-- Get the counts from your curreent workspace:
+local ws_errors = require('lsp_extensions.workspace.diagnostic').get_count(0, 'Error')
+local ws_hints = require('lsp_extensions.workspace.diagnostic').get_count(0, 'Hint')
+
+-- Set the qflist for the current workspace
+--  For more information, see `:help vim.lsp.diagnostic.set_loc_list()`, since this has some of the same configuration.
+require('lsp_extensions.workspace.diagnostic').set_qf_list()
+```
 
 ## Clips
 
