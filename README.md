@@ -52,6 +52,13 @@ On cursor hover, get hints for current line:
 autocmd CursorHold,CursorHoldI *.rs :lua require'lsp_extensions'.inlay_hints{ only_current_line = true }
 ```
 
+By default only ChainingHint is enabled. This is due to Neovim not able to add virtual text injected into a line. To enable all hints: 
+**Note:** Hints will overwrite if other hints using this. Only the last hint will be shown. 
+
+```vimscript
+:lua require('lsp_extensions').inlay_hints{ enabled = {"TypeHint", "ChainingHint", "ParameterHint"} }
+```
+
 Available Options (Showing defaults):
 
 ```lua
