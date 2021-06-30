@@ -108,12 +108,12 @@ inlay_hints.get_callback = function(opts)
 
       local text
       for _, hint in ipairs(hints) do
-        if aligned then
-          local line_length = #vim.api.nvim_buf_get_lines(bufnr, end_line, end_line + 1, false)[1]
-          text = string.format("%s %s", (" "):rep(longest_line - line_length), prefix .. hint.label)
-        else
-          text = (text or "") .. prefix .. hint.label
-        end
+        text = (text or "") .. prefix .. hint.label
+      end
+
+      if aligned then
+        local line_length = #vim.api.nvim_buf_get_lines(bufnr, end_line, end_line + 1, false)[1]
+        text = string.format("%s %s", (" "):rep(longest_line - line_length), text)
       end
       vim.api.nvim_buf_set_virtual_text(ctx.bufnr, inlay_hints_ns, end_line, {{text, highlight}}, {})
     end
