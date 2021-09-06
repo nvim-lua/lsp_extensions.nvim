@@ -1,3 +1,5 @@
+local util = require('lsp_extensions.util')
+
 local protocol = vim.lsp.protocol
 local if_nil = vim.F.if_nil
 
@@ -41,12 +43,13 @@ local M = {}
 -- { client: stuff }
 M.diagnostic_cache = _LspExtensionsWorkspaceCache
 
-M.handler = function(err, method, result, client_id, bufnr, config)
-  vim.lsp.diagnostic.on_publish_diagnostics(err, method, result, client_id, bufnr, config)
+M.handler = util.mk_handler(function(err, result, ctx, config)
+  vim.lsp.diagnostic.on_publish_diagnostics(err, result, ctx, config)
 
   if not result then return end
+  local client_id = ctx.client_id
 
-  bufnr = bufnr or vim.uri_to_bufnr(result.uri)
+  local bufnr = ctx.bufnr or vim.uri_to_bufnr(result.uri)
 
   if not M.diagnostic_cache[client_id] then
     M.diagnostic_cache[client_id] = {}
@@ -64,7 +67,7 @@ M.handler = function(err, method, result, client_id, bufnr, config)
     diagnostics = diagnostics,
     counts = counts,
   }
-end
+end)
 
 M.get_count = function(bufnr, severity)
   if bufnr == 0 or not bufnr then
