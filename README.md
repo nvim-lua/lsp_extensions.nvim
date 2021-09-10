@@ -53,7 +53,7 @@ autocmd CursorHold,CursorHoldI *.rs :lua require'lsp_extensions'.inlay_hints{ on
 ```
 
 By default only ChainingHint is enabled. This is due to Neovim not able to add virtual text injected into a line. To enable all hints: 
-**Note:** Hints will overwrite if other hints using this. Only the last hint will be shown. 
+**Note:** Not all hints will be displayed if this is set. For easier readability, only hints of one type are shown per line.
 
 ```vimscript
 :lua require('lsp_extensions').inlay_hints{ enabled = {"TypeHint", "ChainingHint", "ParameterHint"} }

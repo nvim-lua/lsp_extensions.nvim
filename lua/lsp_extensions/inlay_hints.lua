@@ -25,7 +25,7 @@ interface InlayHint {
     label: string,
 }
 ```
---]] 
+--]]
 
 local inlay_hints = {}
 
@@ -81,8 +81,12 @@ inlay_hints.get_callback = function(opts)
 
     for _, hint in ipairs(result) do
       local finish = hint.range["end"].line
-      if not hint_store[finish] and in_list(enabled)(hint.kind) then
-        hint_store[finish] = hint
+      if in_list(enabled)(hint.kind) then
+        if not hint_store[finish] then
+          hint_store[finish] = {hint}
+        elseif hint_store[finish][1].kind == hint.kind then
+          table.insert(hint_store[finish], hint)
+        end
 
         if aligned then
           longest_line = math.max(longest_line,
@@ -91,8 +95,8 @@ inlay_hints.get_callback = function(opts)
       end
     end
 
-    local display_virt_text = function(hint)
-      local end_line = hint.range["end"].line
+    local display_virt_text = function(hints)
+      local end_line = hints[1].range["end"].line
 
       -- Check for any existing / more important virtual text on the line.
       -- TODO: Figure out how stackable virtual text works? What happens if there is more than one??
@@ -101,25 +105,27 @@ inlay_hints.get_callback = function(opts)
       if not vim.tbl_isempty(existing_virt_text) then return end
 
       local text
+      for _, hint in ipairs(hints) do
+        text = (text or "") .. prefix .. hint.label
+      end
+
       if aligned then
         local line_length = #vim.api.nvim_buf_get_lines(bufnr, end_line, end_line + 1, false)[1]
-        text = string.format("%s %s", (" "):rep(longest_line - line_length), prefix .. hint.label)
-      else
-        text = prefix .. hint.label
+        text = string.format("%s %s", (" "):rep(longest_line - line_length), text)
       end
       vim.api.nvim_buf_set_virtual_text(bufnr, inlay_hints_ns, end_line, {{text, highlight}}, {})
     end
 
     if only_current_line then
-      local hint = hint_store[vim.api.nvim_win_get_cursor(0)[1] - 1]
+      local hints = hint_store[vim.api.nvim_win_get_cursor(0)[1] - 1]
 
-      if not hint then
+      if not hints then
         return
       else
-        display_virt_text(hint)
+        display_virt_text(hints)
       end
     else
-      for _, hint in pairs(hint_store) do display_virt_text(hint) end
+      for _, hints in pairs(hint_store) do display_virt_text(hints) end
     end
   end
 end
