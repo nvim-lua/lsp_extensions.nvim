@@ -27,6 +27,8 @@ interface InlayHint {
 ```
 --]] 
 
+local util = require('lsp_extensions.util')
+
 local inlay_hints = {}
 
 local inlay_hints_ns = vim.api.nvim_create_namespace("lsp_extensions.inlay_hints")
@@ -51,7 +53,7 @@ inlay_hints.get_callback = function(opts)
   local only_current_line = opts.only_current_line
   if only_current_line == nil then only_current_line = false end
 
-  return function(err, result, ctx, _)
+  return util.mk_handler(function(err, result, ctx, _)
     -- I'm pretty sure this only happens for unsupported items.
     if err or type(result) == 'number' then
       return
@@ -121,7 +123,7 @@ inlay_hints.get_callback = function(opts)
     else
       for _, hint in pairs(hint_store) do display_virt_text(hint) end
     end
-  end
+  end)
 end
 
 inlay_hints.get_params = function()
