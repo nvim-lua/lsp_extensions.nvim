@@ -27,6 +27,8 @@ interface InlayHint {
 ```
 --]] 
 
+local util = require('lsp_extensions.util')
+
 local inlay_hints = {}
 
 local inlay_hints_ns = vim.api.nvim_create_namespace("lsp_extensions.inlay_hints")
@@ -51,7 +53,7 @@ inlay_hints.get_callback = function(opts)
   local only_current_line = opts.only_current_line
   if only_current_line == nil then only_current_line = false end
 
-  return function(err, _, result, _, bufnr)
+  return util.mk_handler(function(err, result, ctx, _)
     -- I'm pretty sure this only happens for unsupported items.
     if err or type(result) == 'number' then
       return
@@ -61,7 +63,7 @@ inlay_hints.get_callback = function(opts)
       return
     end
 
-    vim.api.nvim_buf_clear_namespace(bufnr, inlay_hints_ns, 0, -1)
+    vim.api.nvim_buf_clear_namespace(ctx.bufnr, inlay_hints_ns, 0, -1)
 
     local hint_store = {}
 
@@ -86,7 +88,7 @@ inlay_hints.get_callback = function(opts)
 
         if aligned then
           longest_line = math.max(longest_line,
-                                  #vim.api.nvim_buf_get_lines(bufnr, finish, finish + 1, false)[1])
+                                  #vim.api.nvim_buf_get_lines(ctx.bufnr, finish, finish + 1, false)[1])
         end
       end
     end
@@ -96,18 +98,18 @@ inlay_hints.get_callback = function(opts)
 
       -- Check for any existing / more important virtual text on the line.
       -- TODO: Figure out how stackable virtual text works? What happens if there is more than one??
-      local existing_virt_text = vim.api.nvim_buf_get_extmarks(bufnr, inlay_hints_ns, {end_line, 0},
+      local existing_virt_text = vim.api.nvim_buf_get_extmarks(ctx.bufnr, inlay_hints_ns, {end_line, 0},
                                                                {end_line, 0}, {})
       if not vim.tbl_isempty(existing_virt_text) then return end
 
       local text
       if aligned then
-        local line_length = #vim.api.nvim_buf_get_lines(bufnr, end_line, end_line + 1, false)[1]
+        local line_length = #vim.api.nvim_buf_get_lines(ctx.bufnr, end_line, end_line + 1, false)[1]
         text = string.format("%s %s", (" "):rep(longest_line - line_length), prefix .. hint.label)
       else
         text = prefix .. hint.label
       end
-      vim.api.nvim_buf_set_virtual_text(bufnr, inlay_hints_ns, end_line, {{text, highlight}}, {})
+      vim.api.nvim_buf_set_virtual_text(ctx.bufnr, inlay_hints_ns, end_line, {{text, highlight}}, {})
     end
 
     if only_current_line then
@@ -121,7 +123,7 @@ inlay_hints.get_callback = function(opts)
     else
       for _, hint in pairs(hint_store) do display_virt_text(hint) end
     end
-  end
+  end)
 end
 
 inlay_hints.get_params = function()
