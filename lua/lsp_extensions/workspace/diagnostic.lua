@@ -59,7 +59,7 @@ M.handler = util.mk_handler(function(err, result, ctx, config)
 
   local counts = {}
   for _, severity in ipairs(DiagnosticSeverity) do
-    counts[to_severity(severity)] = vim.lsp.diagnostic.get_count(bufnr, severity, client_id)
+    counts[to_severity(severity)] = vim.diagnostic.get(bufnr, severity, client_id)
   end
 
 
