@@ -33,8 +33,12 @@ local inlay_hints = {}
 
 local inlay_hints_ns = vim.api.nvim_create_namespace("lsp_extensions.inlay_hints")
 
+inlay_hints.request_name = function(opts)
+  return string.format("%s/inlayHints", opts.lsp_client or "rust-analyzer")
+end
+
 inlay_hints.request = function(opts, bufnr)
-  vim.lsp.buf_request(bufnr or 0, "rust-analyzer/inlayHints", inlay_hints.get_params(),
+  vim.lsp.buf_request(bufnr or 0, inlay_hints.request_name(opts), inlay_hints.get_params(),
                       inlay_hints.get_callback(opts))
 
   -- TODO: At some point, rust probably adds this?

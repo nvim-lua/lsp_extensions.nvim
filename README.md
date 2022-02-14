@@ -13,8 +13,8 @@ Plug 'nvim-lua/lsp_extensions.nvim'
 
 ### Available Features
 
-#### Rust
-- [Inlay Hints](#inlay-hints-rust-analyzer)
+#### Rust/C++
+- [Inlay Hints](#inlay-hints-rust-analyzerclangd-14)
 
 #### Dart
 - [Closing Labels](#closing-labels-dartls)
@@ -24,39 +24,61 @@ Plug 'nvim-lua/lsp_extensions.nvim'
 - [Diagnostics](#workspace-diagnostics)
 
 
-## Inlay Hints (rust-analyzer)
+## Inlay Hints (rust-analyzer/clangd-14)
 
 ![Customized](https://i.imgur.com/FRRas1c.png)
+![CustomizedCpp](https://i.imgur.com/SofDfdh.png)
+
+**Note**: Minial requirement for clangd inlay hints is clangd-14, you need to set `clangdInlayHintsProvider` to true in clangd's `init_options`
+```lua
+lspconfig.clangd.setup {
+ ...
+ init_options = {
+   clangdInlayHintsProvider = true,
+   ...
+ },
+ ...
+}
+```
 
 Inlay hints for the whole file:
 
 ```vimscript
 nnoremap <Leader>T :lua require'lsp_extensions'.inlay_hints()
+" For C++ set lsp_client to clangd
+nnoremap <Leader>T :lua require'lsp_extensions'.inlay_hints{ lsp_client = "clangd" }
 ```
 
 Only current line:
 
 ```vimscript
 nnoremap <Leader>t :lua require'lsp_extensions'.inlay_hints{ only_current_line = true }
+" For C++ set lsp_client to clangd
+nnoremap <Leader>t :lua require'lsp_extensions'.inlay_hints{ lsp_client = "clangd", only_current_line = true }
 ```
 
 Run on showing file or new file in buffer:
 
 ```vimscript
 autocmd BufEnter,BufWinEnter,TabEnter *.rs :lua require'lsp_extensions'.inlay_hints{}
+" For C++ set lsp_client to clangd
+autocmd BufEnter,BufWinEnter,TabEnter *.cpp :lua require'lsp_extensions'.inlay_hints{ lsp_client = "clangd" }
 ```
 
 On cursor hover, get hints for current line:
 
 ```vimscript
 autocmd CursorHold,CursorHoldI *.rs :lua require'lsp_extensions'.inlay_hints{ only_current_line = true }
+" For C++ set lsp_client to clangd
+autocmd CursorHold,CursorHoldI *.cpp :lua require'lsp_extensions'.inlay_hints{ lsp_client = "clangd", only_current_line = true }
 ```
 
-By default only ChainingHint is enabled. This is due to Neovim not able to add virtual text injected into a line. To enable all hints: 
+By default only ChainingHint is enabled. This is due to Neovim not able to add virtual text injected into a line. To enable all hints:
 **Note:** Not all hints will be displayed if this is set. For easier readability, only hints of one type are shown per line.
-
+**Note:** For clangd you have to explicitly specify the type of the hints to provide, currently, it have "parameter" and "type" [clangd doc](https://clangd.llvm.org/extensions#inlay-hints)
 ```vimscript
 :lua require('lsp_extensions').inlay_hints{ enabled = {"TypeHint", "ChainingHint", "ParameterHint"} }
+:lua require('lsp_extensions').inlay_hints{ lsp_client = "clangd", enabled = {"parameter", "type"} }
 ```
 
 Available Options (Showing defaults):
@@ -65,6 +87,7 @@ Available Options (Showing defaults):
 require'lsp_extensions'.inlay_hints{
 	highlight = "Comment",
 	prefix = " > ",
+	lsp_client = "rust-analyzer",
 	aligned = false,
 	only_current_line = false,
 	enabled = { "ChainingHint" }
@@ -73,6 +96,8 @@ require'lsp_extensions'.inlay_hints{
 
 ```vimscript
 autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter,BufWritePost *.rs :lua require'lsp_extensions'.inlay_hints{ prefix = ' » ', highlight = "NonText", enabled = {"ChainingHint"} }
+" For C++
+autocmd InsertLeave,BufEnter,BufWinEnter,TabEnter,BufWritePost *.cpp :lua require'lsp_extensions'.inlay_hints{ lsp_client = "clangd" prefix = ' » ', highlight = "NonText", enabled = {"type"} }
 ```
 
 ## Closing Labels (dartls)
