@@ -1,6 +1,12 @@
 # lsp_extensions.nvim
 
-Repo to hold a bunch of info &amp; extension callbacks for built-in LSP. Use at your own risk :wink:
+I archived this repo because I think there are better language specific repos to handle the kinds of things we have here.
+
+Feel free to copy anything inside of here and then use it in your own language-specific or feature-specific repos. 
+
+Thanks
+
+- TJ
 
 ## Install
 
